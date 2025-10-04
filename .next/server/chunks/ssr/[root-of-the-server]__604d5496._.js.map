@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 15, "column": 0}, "map": {"version":3,"sources":["file:///workspaces/tesst/src/app/page.js"],"sourcesContent":["// app/page.js\nimport { redirect } from \"next/navigation\";\n\nexport default function HomePage() {\n  redirect(\"/auth/login\");\n\n  // Este código não será executado\n  return null;\n}\n"],"names":[],"mappings":"AAAA,cAAc;;;;;AACd;AAAA;;AAEe,SAAS;IACtB,IAAA,iMAAQ,EAAC;IAET,iCAAiC;IACjC,OAAO;AACT","debugId":null}}]
+}

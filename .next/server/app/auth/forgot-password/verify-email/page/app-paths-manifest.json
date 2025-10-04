@@ -1,0 +1,3 @@
+{
+  "/auth/forgot-password/verify-email/page": "app/auth/forgot-password/verify-email/page.js"
+}
