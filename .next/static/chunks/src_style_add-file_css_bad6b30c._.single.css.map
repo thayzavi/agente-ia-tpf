@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/style/add-file.css"],"sourcesContent":[".add-file-modal {\n  width: 400px; \n  padding: 20px;\n  background-color: #fff;\n  border-radius: 10px;\n  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n  text-align: center;\n}\n\n.modal-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 20px;\n}\n\n.modal-header h3 {\n  margin: 0;\n  color: #333;\n}\n\n.close-modal-btn {\n  background: none;\n  border: none;\n  font-size: 24px;\n  cursor: pointer;\n  color: #6a6a6a;\n}\n\n.close-modal-btn:hover {\n  color: #333;\n}\n\n.modal-content {\n  margin-bottom: 20px;\n}\n\n.file-upload-label {\n  display: inline-flex;\n  align-items: center;\n  padding: 10px 20px;\n  background-color: #1a4d8b;\n  color: white;\n  border-radius: 5px;\n  cursor: pointer;\n  margin-top: 15px;\n  transition: background-color 0.3s ease;\n}\n\n.file-upload-label:hover {\n  background-color: #123a7d;\n}\n\n.upload-icon {\n  margin-right: 8px;\n  font-size: 20px;\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;;AASA;;;;;;;AAOA;;;;;AAKA;;;;;;;;AAQA;;;;AAIA;;;;AAIA;;;;;;;;;;;;AAYA;;;;AAIA"}}]
+}

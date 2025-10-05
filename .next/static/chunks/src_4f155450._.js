@@ -365,15 +365,19 @@ const api = {
             method: "DELETE"
         });
     },
-    /** ===================== MENSAGENS ===================== */ sendMessage: async function(message) {
-        let conversationId = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null;
-        if (!message) throw new Error("Mensagem não pode ser vazia.");
+    /** ===================== MENSAGENS ===================== */ sendMessage: async function(prompt) {
+        let conversationId = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, attachedDocumentId = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null // Adicionado para suportar o anexo
+        ;
+        if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = "".concat(API_BASE_URL, "/api/chat/conversations");
         const requestBody = {
-            prompt: message
+            prompt: prompt
         };
         if (conversationId) {
             requestBody.conversation_id = conversationId;
+        }
+        if (attachedDocumentId) {
+            requestBody.input_document_id = attachedDocumentId;
         }
         const data = await fetchWithToken(url, {
             method: "POST",

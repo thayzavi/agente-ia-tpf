@@ -1,0 +1,60 @@
+/* [project]/src/style/add-file.css [app-client] (css) */
+.add-file-modal {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 10px;
+  width: 400px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, .3);
+}
+
+.modal-header {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  display: flex;
+}
+
+.modal-header h3 {
+  color: #333;
+  margin: 0;
+}
+
+.close-modal-btn {
+  cursor: pointer;
+  color: #6a6a6a;
+  background: none;
+  border: none;
+  font-size: 24px;
+}
+
+.close-modal-btn:hover {
+  color: #333;
+}
+
+.modal-content {
+  margin-bottom: 20px;
+}
+
+.file-upload-label {
+  color: #fff;
+  cursor: pointer;
+  background-color: #1a4d8b;
+  border-radius: 5px;
+  align-items: center;
+  margin-top: 15px;
+  padding: 10px 20px;
+  transition: background-color .3s;
+  display: inline-flex;
+}
+
+.file-upload-label:hover {
+  background-color: #123a7d;
+}
+
+.upload-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+/*# sourceMappingURL=src_style_add-file_css_bad6b30c._.single.css.map*/

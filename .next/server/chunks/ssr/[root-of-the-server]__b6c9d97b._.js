@@ -332,14 +332,18 @@ const api = {
             method: "DELETE"
         });
     },
-    /** ===================== MENSAGENS ===================== */ sendMessage: async (message, conversationId = null)=>{
-        if (!message) throw new Error("Mensagem não pode ser vazia.");
+    /** ===================== MENSAGENS ===================== */ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null // Adicionado para suportar o anexo
+    )=>{
+        if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = `${API_BASE_URL}/api/chat/conversations`;
         const requestBody = {
-            prompt: message
+            prompt: prompt
         };
         if (conversationId) {
             requestBody.conversation_id = conversationId;
+        }
+        if (attachedDocumentId) {
+            requestBody.input_document_id = attachedDocumentId;
         }
         const data = await fetchWithToken(url, {
             method: "POST",

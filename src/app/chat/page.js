@@ -51,7 +51,7 @@ export default function ChatPage() {
     load();
   }, []);
 
- 
+
   useEffect(() => {
     if (chatContainerRef.current)
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -116,13 +116,30 @@ export default function ChatPage() {
       {/* Sidebar */}
       <aside className="sidebar">
         <h1 className="logo">TPF<span>-AI</span></h1>
+
         <button
           className="new-chat"
           onClick={async () => {
             try {
-              const newConvData = await api.sendMessage("Novo chat iniciado!");
-              setConversations(prev => [newConvData.conversation, ...prev]);
-              selectConversation(newConvData.conversation);
+              setActiveConversation(null);
+              setMessages([]);
+              setAttachedDocumentId(null);
+
+              const apiResponse = await api.sendMessage("Novo chat iniciado");
+
+              if (!apiResponse || !apiResponse.conversation_id) {
+                throw new Error("API não retornou o ID da nova conversa.");
+              }
+              const newConvList = await api.getConversations();
+              const newConversation = newConvList.find(c => c._id === apiResponse.conversation_id) || newConvList[0];
+
+              if (!newConversation) {
+                throw new Error("Falha ao recuperar os dados da nova conversa.");
+              }
+
+              setConversations(newConvList); 
+              selectConversation(newConversation);
+
             } catch (err) {
               console.error("Erro ao criar novo chat:", err.message);
             }
@@ -133,20 +150,22 @@ export default function ChatPage() {
 
         <h4>Histórico</h4>
         <div className="chat-list">
-          {conversations.map((conv) => (
-            <SidebarItem
-              key={conv._id}
-              conversation={conv}
-              onRename={(conversation) =>
-                setModal({ type: "renomear", chat: conversation })
-              }
-              onDelete={(conversation) =>
-                setModal({ type: "excluir", chat: conversation })
-              }
-              onSelect={selectConversation}
-              isActive={activeConversation?._id === conv._id}
-            />
-          ))}
+          {conversations
+            .filter(conv => conv && conv._id)
+            .map((conv) => (
+              <SidebarItem
+                key={conv._id}
+                conversation={conv}
+                onRename={(conversation) =>
+                  setModal({ type: "renomear", chat: conversation })
+                }
+                onDelete={(conversation) =>
+                  setModal({ type: "excluir", chat: conversation })
+                }
+                onSelect={selectConversation}
+                isActive={activeConversation && activeConversation._id === conv._id}
+              />
+            ))}
         </div>
 
 
@@ -164,8 +183,8 @@ export default function ChatPage() {
             <div key={msg._id || msg.id} className={`message-bubble ${msg.role === "user" ? "user" : "bot"}`}>
               {msg.content}
               {msg.generated_document_id && (
-             <DocumentLink documentId={msg.generated_document_id} /> 
-        )}
+                <DocumentLink documentId={msg.generated_document_id} />
+              )}
             </div>
           ))}
 
@@ -198,7 +217,7 @@ export default function ChatPage() {
         <AddFileModal
           onClose={() => setShowAddFileModal(false)}
           activeConversation={activeConversation}
-          
+
           onFileUploaded={handleFileUploaded}
         />
       )}

@@ -1,0 +1,52 @@
+/* [project]/src/style/modal.css [app-client] (css) */
+.modal-overlay {
+  background: rgba(0, 0, 0, .4);
+  justify-content: center;
+  align-items: center;
+  animation: .3s forwards fadeIn;
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.modal {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 10px;
+  width: 400px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, .3);
+}
+
+.modal-animate {
+  animation: .3s forwards scaleIn;
+}
+
+.modal-actions, p {
+  justify-content: center;
+  padding: 10px;
+  display: flex;
+}
+
+.modal-actions button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  margin: 10px;
+  padding: .4rem 1rem;
+}
+
+.modal-actions .confirm {
+  color: #fff;
+  background: #8ef774;
+}
+
+.modal-actions .cancelar {
+  color: #fff;
+  background: #f7747f;
+}
+
+/*# sourceMappingURL=src_style_modal_css_bad6b30c._.single.css.map*/
