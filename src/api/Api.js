@@ -119,7 +119,7 @@ export const api = {
     if (!file) throw new Error("Arquivo não selecionado.");
     const formData = new FormData();
     formData.append("file", file);
-    return fetchWithToken(`${API_BASE_URL}/documents/upload`, {
+    return fetchWithToken(`${API_BASE_URL}/api/documents/upload`, {
       method: "POST",
       body: formData,
     });
