@@ -366,8 +366,7 @@ const api = {
         });
     },
     /** ===================== MENSAGENS ===================== */ sendMessage: async function(prompt) {
-        let conversationId = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, attachedDocumentId = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null // Adicionado para suportar o anexo
-        ;
+        let conversationId = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : null, attachedDocumentId = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : null, templateId = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
         if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = "".concat(API_BASE_URL, "/api/chat/conversations");
         const requestBody = {
@@ -379,6 +378,9 @@ const api = {
         if (attachedDocumentId) {
             requestBody.input_document_id = attachedDocumentId;
         }
+        if (templateId) {
+            requestBody.template_id = templateId;
+        }
         const data = await fetchWithToken(url, {
             method: "POST",
             headers: {
@@ -388,24 +390,37 @@ const api = {
         });
         return data;
     },
-    /** ===================== DOCUMENTOS ===================== */ uploadDocument: async (file)=>{
+    /** ===================== DOCUMENTOS ===================== */ getTemplates: async ()=>{
+        return fetchWithToken("".concat(API_BASE_URL, "/api/templates"));
+    },
+    /** ===================== DOCUMENTOS (completo) ===================== */ uploadDocument: async (file)=>{
         if (!file) throw new Error("Arquivo não selecionado.");
         const formData = new FormData();
         formData.append("file", file);
-        return fetchWithToken("".concat(API_BASE_URL, "/documents/upload"), {
+        return fetchWithToken("".concat(API_BASE_URL, "/api/documents/upload"), {
             method: "POST",
             body: formData
         });
     },
-    downloadFile: async (gridfsFileId)=>{
+    getDocuments: async ()=>{
+        return fetchWithToken("".concat(API_BASE_URL, "/api/documents"));
+    },
+    getDocumentMetadata: async (gridfsFileId)=>{
         if (!gridfsFileId) throw new Error("ID do arquivo é obrigatório.");
         const token = getToken();
-        const res = await fetch("".concat(API_BASE_URL, "/files/").concat(gridfsFileId), {
+        // CORRIGIDO: Usando backticks (crase) para injetar o valor da variável
+        const res = await fetch("".concat(API_BASE_URL, "/api/files/").concat(gridfsFileId), {
             headers: {
                 Authorization: "Bearer ".concat(token)
             }
         });
-        if (!res.ok) throw new Error("Falha ao baixar arquivo.");
+        if (!res.ok) {
+            // É uma boa prática capturar o status code para debugging, 
+            // como sugeri anteriormente:
+            const status = res.status;
+            let errorText = "Erro HTTP: ".concat(status, ".");
+            throw new Error("Falha ao baixar arquivo. ".concat(errorText));
+        }
         return res.blob();
     }
 };

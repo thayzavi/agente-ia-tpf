@@ -1,15 +1,23 @@
 {
   "pages": {
     "/auth/register/form/page": [
-      "static/chunks/ff1a16fafef87110.js",
-      "static/chunks/7dd66bdf8a7e5707.js",
-      "static/chunks/6a062092099b40d3.css",
-      "static/chunks/417ff2cf7be9ccb2.js",
-      "static/chunks/cb659e33bb75db73.js",
-      "static/chunks/4c791b400ebbf74c.js",
-      "static/chunks/6c1d949039ca8e4a.js",
-      "static/chunks/47f477e3d2ef265b.js",
-      "static/chunks/turbopack-5d90717077429818.js"
+      "static/chunks/node_modules_next_dist_8db7fb1f._.js",
+      "static/chunks/src_app_favicon_ico_mjs_243aa161._.js",
+      "static/chunks/[root-of-the-server]__a8f130a3._.css",
+      "static/chunks/src_app_layout_0a548d63.js",
+      "static/chunks/node_modules_next_dist_client_components_builtin_global-error_47260637.js",
+      "static/chunks/node_modules_53de0352._.js",
+      "static/chunks/src_d119302b._.js",
+      "static/chunks/src_app_auth_register_form_page_47260637.js",
+      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_57d40746._.js",
+      "static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js",
+      "static/chunks/node_modules_next_dist_compiled_next-devtools_index_a9cb0712.js",
+      "static/chunks/node_modules_next_dist_compiled_5150ccfd._.js",
+      "static/chunks/node_modules_next_dist_client_cf1d9188._.js",
+      "static/chunks/node_modules_next_dist_b0daae9a._.js",
+      "static/chunks/node_modules_@swc_helpers_cjs_b3dc30d6._.js",
+      "static/chunks/_a0ff3932._.js",
+      "static/chunks/turbopack-_cdba956c._.js"
     ]
   }
 }

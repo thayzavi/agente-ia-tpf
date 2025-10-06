@@ -142,6 +142,15 @@ h4{
   gap: 0.75rem;
 }
 
+.file-preview {
+  margin-bottom: 12px;
+}
+A
+.chat-input.has-file {
+  border: 2px solid #007bff;
+  border-radius: 8px;
+}
+
 /* bolha base */
 .message-bubble {
   max-width: 70%;

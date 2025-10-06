@@ -468,7 +468,7 @@ const api = {
         if (!file) throw new Error("Arquivo não selecionado.");
         const formData = new FormData();
         formData.append("file", file);
-        return fetchWithToken("".concat(API_BASE_URL, "/documents/upload"), {
+        return fetchWithToken("".concat(API_BASE_URL, "/api/documents/upload"), {
             method: "POST",
             body: formData
         });
@@ -492,6 +492,7 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "[project]/src/components/AddFileModal.js [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
+// addfilemodal.js
 __turbopack_context__.s([
     "default",
     ()=>AddFileModal
@@ -513,15 +514,19 @@ function AddFileModal(param) {
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const handleFileChange = async (e)=>{
         const file = e.target.files[0];
-        if (!file || !activeConversation) return;
+        if (!file || !activeConversation || !activeConversation._id) {
+            setError("Selecione um arquivo e verifique a conversa ativa.");
+            return;
+        }
         setIsUploading(true);
         setError(null);
         try {
             var _data_document;
-            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["api"].uploadDocument(file);
+            const conversationId = activeConversation._id;
+            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["api"].uploadDocument(file, conversationId);
             const documentId = data === null || data === void 0 ? void 0 : (_data_document = data.document) === null || _data_document === void 0 ? void 0 : _data_document._id;
             if (!documentId) {
-                throw new Error("ID do documento não recebido da API. Verifique a resposta do servidor.");
+                throw new Error("ID do documento não recebido da API. Verifique a resposta de sucesso do servidor.");
             }
             alert('Arquivo "'.concat(file.name, '" enviado com sucesso!'));
             if (onFileUploaded && documentId) {
@@ -530,7 +535,7 @@ function AddFileModal(param) {
             onClose();
         } catch (err) {
             console.error("Erro no upload do arquivo:", err);
-            setError(err.message || "Erro ao enviar arquivo.");
+            setError(err.message || "Erro desconhecido ao enviar arquivo.");
         } finally{
             setIsUploading(false);
         }
@@ -547,7 +552,7 @@ function AddFileModal(param) {
                             children: "Adicionar Arquivo"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 42,
+                            lineNumber: 49,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -556,18 +561,18 @@ function AddFileModal(param) {
                             disabled: isUploading,
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$md$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MdOutlineClose"], {}, void 0, false, {
                                 fileName: "[project]/src/components/AddFileModal.js",
-                                lineNumber: 44,
+                                lineNumber: 50,
                                 columnNumber: 88
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 44,
+                            lineNumber: 50,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddFileModal.js",
-                    lineNumber: 41,
+                    lineNumber: 48,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -578,7 +583,7 @@ function AddFileModal(param) {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 48,
+                            lineNumber: 53,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -588,14 +593,14 @@ function AddFileModal(param) {
                                     className: "upload-icon"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 50,
+                                    lineNumber: 55,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                     children: isUploading ? "Processando..." : "Escolher Arquivo"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 52,
+                                    lineNumber: 56,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -607,30 +612,30 @@ function AddFileModal(param) {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 53,
+                                    lineNumber: 57,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 49,
+                            lineNumber: 54,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddFileModal.js",
-                    lineNumber: 46,
+                    lineNumber: 52,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/AddFileModal.js",
-            lineNumber: 40,
+            lineNumber: 47,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/AddFileModal.js",
-        lineNumber: 39,
+        lineNumber: 46,
         columnNumber: 5
     }, this);
 }

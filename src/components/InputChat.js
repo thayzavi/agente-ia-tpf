@@ -1,98 +1,153 @@
+// Aqui onde funciona boa parte da logica, enivar a mensagem, o arqui e o template
 import React, { useState } from "react";
 import { FiSend, FiPlus } from "react-icons/fi";
 import { api } from "../api/Api";
+import File from "../components/File";
 import "../style/chat.css";
 
+export default function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, attachedDocumentId, setAttachedDocumentId,attachedFileName,setAttachedFileName,attachedTemplateId,setAttachedTemplateId
+}) {
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
-export default function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, attachedDocumentId, setAttachedDocumentId }) {
-    const [message, setMessage] = useState("");
-    const [isSending, setIsSending] = useState(false);
+  const sendMessage = async () => {
+    const userPrompt = message.trim();
+    if (!activeConversation || (!userPrompt && !attachedDocumentId) || isSending) return;
 
-    const sendMessage = async () => {
+    setIsSending(true);
+    
+    try {
+      // Enviar mensagem do usuário com template se houver
+      onMessageSent?.({
+        sender: "user",
+        content: userPrompt || "Processar arquivo com template",
+        id: crypto.randomUUID(),
+        attachedDocumentId: attachedDocumentId,
+        attachedFileName: attachedFileName,
+        templateId: attachedTemplateId
+      });
 
-        const userPrompt = message.trim();
-        if (!activeConversation || (!userPrompt && !attachedDocumentId) || isSending) return;
+      const conversationId = activeConversation?._id || activeConversation?.id;
+      
+      // Enviar para API com templateId
+      const data = await api.sendMessage(
+        userPrompt || "Processar este arquivo com o template selecionado", 
+        conversationId, 
+        attachedDocumentId,
+        attachedTemplateId
+      );
 
-        setIsSending(true);
-        setMessage("");
-        onMessageSent?.({
-            sender: "user",
-            content: userPrompt,
-            id: crypto.randomUUID(),
-        });
+      // Limpar anexos após envio
+      setAttachedDocumentId(null);
+      setAttachedFileName(null);
+      setAttachedTemplateId(null);
 
-        try {
-            const conversationId = activeConversation?._id || activeConversation?.id;
+      onMessageSent?.({
+        sender: "bot",
+        content: data?.message_content || data?.content || "Processamento concluído",
+        id: crypto.randomUUID(),
+        generated_document_id: data?.document_id,
+      });
 
-            const data = await api.sendMessage(userPrompt, conversationId, attachedDocumentId);
-          
-            setAttachedDocumentId(null);
+    } catch (err) {
+      console.error("Erro ao enviar mensagem:", err);
+      
+      const errorMessage = "Erro de conexão ou servidor. Tente novamente.";
 
-            onMessageSent?.({
-                sender: "bot",
-                content: data?.message_content || data?.content || data?.mensagem || "Resposta da IA não recebida.",
-                id: crypto.randomUUID(),
-                generated_document_id: data?.document_id,
-            });
+      onMessageSent?.({ 
+        sender: "bot", 
+        content: errorMessage, 
+        id: crypto.randomUUID() 
+      });
+    } finally {
+      setIsSending(false);
+      setMessage("");
+    }
+  };
 
-        } catch (err) {
-            console.error("Erro ao enviar mensagem:", err);
-            
-            const errorMessage = attachedDocumentId 
-                ? "Erro de conexão/servidor. O anexo foi mantido. Tente novamente." 
-                : "Erro de conexão ou servidor. Tente novamente.";
+  const handleRemoveAttachment = () => {
+    setAttachedDocumentId(null);
+    setAttachedFileName(null);
+    setAttachedTemplateId(null);
+  };
 
-            onMessageSent?.({ 
-                sender: "bot", 
-                content: errorMessage, 
-                id: crypto.randomUUID() 
-            });
-        } finally {
-            setIsSending(false);
-        }
-    };
+  const handleRemoveTemplateOnly = () => {
+    setAttachedTemplateId(null);
+  };
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault(); 
-            sendMessage();
-        }
-    };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); 
+      sendMessage();
+    }
+  };
 
-    const placeholderText = attachedDocumentId
-        ? `Documento anexado (${attachedDocumentId.substring(0, 4)}...). Digite sua instrução...`
-        : (isSending ? "Aguardando resposta..." : "Digite sua mensagem...");
-        
-    return (
-        
-        <div className={`chat-input ${attachedDocumentId ? 'has-attachment' : ''}`}> 
-            <button 
-                className="add-file-btn" 
-                onClick={onOpenAddFileModal} 
-                disabled={isSending}
-            >
-                {/* btn add file */}
-                <FiPlus className={attachedDocumentId ? 'attached-icon' : ''} />
-            </button>
-        
-            <input
-                type="text"
-                placeholder={placeholderText}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isSending}
+  const getPlaceholderText = () => {
+    if (attachedDocumentId && attachedTemplateId) return "Digite instruções para processar o arquivo com o template...";
+    if (attachedDocumentId) return "Digite suas instruções para o documento...";
+    if (isSending) return "Aguardando resposta...";
+    return "Digite sua mensagem...";
+  };
+    
+  return (
+    <div className="chat-input-container">
+      {/* Área de anexo mostre arquivo e o template */}
+      {(attachedDocumentId || attachedTemplateId) && (
+        <div className="attachment-preview">
+          {attachedDocumentId && (
+            <File
+              documentId={attachedDocumentId}
+              fileName={attachedFileName}
+              onRemove={handleRemoveAttachment}
             />
-            
-            <button 
-                className="send-btn" 
-                onClick={sendMessage} 
-               
-                disabled={isSending || (!message.trim() && !attachedDocumentId)}
-            >
-                <FiSend />
-            </button>
-            
+          )}
+          {attachedTemplateId && (
+            <div className="template-attachment">
+              <div className="file-info">
+                <span className="file-icon">📄</span>
+                <span className="file-name">Template selecionado</span>
+              </div>
+              <button 
+                className="remove-file-btn"
+                onClick={attachedDocumentId ? handleRemoveTemplateOnly : handleRemoveAttachment}
+                title="Remover template"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
-    );
+      )}
+      
+      {/* Input area */}
+      <div className={`chat-input ${(attachedDocumentId || attachedTemplateId) ? 'has-attachment' : ''}`}>
+        <button 
+          className="add-file-btn" 
+          onClick={onOpenAddFileModal} 
+          disabled={isSending}
+          title="Anexar arquivo e template"
+        >
+          <FiPlus className={attachedDocumentId ? 'attached-icon' : ''} />
+        </button>
+    
+        <input
+          type="text"
+          placeholder={getPlaceholderText()}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isSending}
+        />
+        
+        <button 
+          className="send-btn" 
+          onClick={sendMessage} 
+          disabled={isSending || (!message.trim() && !attachedDocumentId)}
+          title="Enviar mensagem"
+        >
+          <FiSend />
+        </button>
+      </div>
+    </div>
+  );
 }

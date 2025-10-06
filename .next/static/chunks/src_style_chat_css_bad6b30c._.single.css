@@ -145,6 +145,15 @@ h4 {
   overflow-y: auto;
 }
 
+.file-preview {
+  margin-bottom: 12px;
+}
+
+A .chat-input.has-file {
+  border: 2px solid #007bff;
+  border-radius: 8px;
+}
+
 .message-bubble {
   word-break: break-word;
   border-radius: 1rem;

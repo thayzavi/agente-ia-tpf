@@ -364,6 +364,34 @@ h4 {
   overflow-y: auto;
 }
 
+.attached-file-preview {
+  background: #f0f0f0;
+  border-radius: 6px;
+  align-items: center;
+  margin-right: 5px;
+  padding: 2px 8px;
+  font-size: .9rem;
+  display: flex;
+}
+
+.attached-file-preview .remove-attachment {
+  cursor: pointer;
+  color: #900;
+  background: none;
+  border: none;
+  align-items: center;
+  margin-left: 5px;
+  display: flex;
+}
+
+.template-select {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-right: 5px;
+  padding: 5px;
+  font-size: .9rem;
+}
+
 .message-bubble {
   word-break: break-word;
   border-radius: 1rem;

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/style/file.css"],"sourcesContent":[".file {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  background: #f8f9fa;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 8px 12px;\n  margin-bottom: 8px;\n  animation: slideIn 0.2s ease-out;\n}\n\n.file-info {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  flex: 1;\n  color: #f8f9fa;\n}\n\n.file-icon {\n  color: #6c757d;\n  font-size: 18px;\n}\n\n.file-name {\n  font-size: 14px;\n  color: #ffffff;\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.remove-file-btn {\n  background: none;\n  border: none;\n  color: #6c757d;\n  cursor: pointer;\n  padding: 4px;\n  border-radius: 4px;\n  transition: all 0.2s;\n}\n\n.remove-file-btn:hover {\n  background: #e9ecef;\n  color: #dc3545;\n}\n\n@keyframes slideIn {\n  from {\n    opacity: 0;\n    transform: translateY(-10px);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}"],"names":[],"mappings":"AAAA;;;;;;;;;;;;AAYA;;;;;;;;AAQA;;;;;AAKA;;;;;;;;;AASA;;;;;;;;;;AAUA;;;;;AAKA"}}]
+}

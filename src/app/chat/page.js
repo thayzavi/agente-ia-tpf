@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import SidebarItem from "../../components/SidebarItem";
 import Modal from "../../components/Modal";
+import DocumentLink from "../../components/DocumentLink";
 import AddFileModal from "../../components/AddFileModal";
 import MenuPerfil from "../../components/MenuPerfil";
 import InputChat from "../../components/InputChat";
@@ -18,8 +19,10 @@ export default function ChatPage() {
   const [showMenuPerfil, setShowMenuPerfil] = useState(false);
   const [showAddFileModal, setShowAddFileModal] = useState(false);
 
-  //  Para gerenciar o ID do documento anexado
+  // Estados para gerenciar os anexos
   const [attachedDocumentId, setAttachedDocumentId] = useState(null);
+  const [attachedFileName, setAttachedFileName] = useState(null);
+  const [attachedTemplateId, setAttachedTemplateId] = useState(null); // ← ESTADO ADICIONADO
 
   const chatContainerRef = useRef(null);
 
@@ -51,7 +54,6 @@ export default function ChatPage() {
     load();
   }, []);
 
-
   useEffect(() => {
     if (chatContainerRef.current)
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -60,6 +62,8 @@ export default function ChatPage() {
   const selectConversation = async (conversation) => {
     setActiveConversation(conversation);
     setAttachedDocumentId(null);
+    setAttachedFileName(null);
+    setAttachedTemplateId(null);
     try {
       const history = await api.getConversationHistory(conversation._id || conversation.id);
       setMessages(history || []);
@@ -100,15 +104,17 @@ export default function ChatPage() {
     }
   };
 
-
   const handleNewMessage = (msg) => setMessages(prev => [...prev, msg]);
   const closeModal = () => setModal(null);
   const onLogout = () => (window.location.href = "/auth/login");
 
-  const handleFileUploaded = (documentId) => {
+  const handleFileUploaded = (documentId, fileName, templateId) => {
     setAttachedDocumentId(documentId);
+    setAttachedFileName(fileName);
+    setAttachedTemplateId(templateId);
     setShowAddFileModal(false);
-    alert(`Documento anexado! Digite sua instrução e envie.`);
+
+    alert(`Arquivo "${fileName}" e template selecionado! Digite suas instruções.`);
   };
 
   return (
@@ -124,6 +130,8 @@ export default function ChatPage() {
               setActiveConversation(null);
               setMessages([]);
               setAttachedDocumentId(null);
+              setAttachedFileName(null);
+              setAttachedTemplateId(null); 
 
               const apiResponse = await api.sendMessage("Novo chat iniciado");
 
@@ -137,7 +145,7 @@ export default function ChatPage() {
                 throw new Error("Falha ao recuperar os dados da nova conversa.");
               }
 
-              setConversations(newConvList); 
+              setConversations(newConvList);
               selectConversation(newConversation);
 
             } catch (err) {
@@ -168,7 +176,6 @@ export default function ChatPage() {
             ))}
         </div>
 
-
         <div className="user-profile" onClick={() => setShowMenuPerfil(!showMenuPerfil)}>
           <div className="user-icon-container"><FaUserCircle size={32} color="#000000ff" /></div>
           <span>{user.name}</span>
@@ -182,12 +189,11 @@ export default function ChatPage() {
           {messages.map(msg => (
             <div key={msg._id || msg.id} className={`message-bubble ${msg.role === "user" ? "user" : "bot"}`}>
               {msg.content}
-              {msg.generated_document_id && (
-                <DocumentLink documentId={msg.generated_document_id} />
+              {msg.document_id && (
+                  <DocumentLink documentId={msg.document_id} />
               )}
             </div>
           ))}
-
         </div>
 
         <InputChat
@@ -196,6 +202,10 @@ export default function ChatPage() {
           onOpenAddFileModal={() => setShowAddFileModal(true)}
           attachedDocumentId={attachedDocumentId}
           setAttachedDocumentId={setAttachedDocumentId}
+          attachedFileName={attachedFileName}
+          setAttachedFileName={setAttachedFileName}
+          attachedTemplateId={attachedTemplateId}
+          setAttachedTemplateId={setAttachedTemplateId}
         />
       </main>
 
@@ -217,7 +227,6 @@ export default function ChatPage() {
         <AddFileModal
           onClose={() => setShowAddFileModal(false)}
           activeConversation={activeConversation}
-
           onFileUploaded={handleFileUploaded}
         />
       )}
