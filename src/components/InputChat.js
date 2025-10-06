@@ -44,7 +44,7 @@ export default function InputChat({ activeConversation, onOpenAddFileModal, onMe
 
       onMessageSent?.({
         sender: "bot",
-        content: data?.message_content || data?.content || "Processamento concluído",
+        content: data?.message_content || data?.content || "Tudo pronto! Clique na conversa no histórico à esquerda para ver a resposta completa.",
         id: crypto.randomUUID(),
         generated_document_id: data?.document_id,
       });

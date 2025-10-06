@@ -51,7 +51,28 @@ export const api = {
 
         return data;
     },
-/*informações do user*/ 
+
+    /** Registro */
+    register: async (name, email, password) => {
+        if (!name || !email || !password) {
+            throw new Error("Nome completo, email e senha são obrigatórios.");
+        }
+
+        const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password }),
+        });
+
+        return handleResponse(res);
+    },
+
+    /** Logout */
+    logout: () => {
+        localStorage.removeItem("token");
+        window.location.href = "/auth/login";
+    },
+    /*informações do user*/
     getProfile: async () => {
         return fetchWithToken(`${API_BASE_URL}/api/auth/profile`);
     },
@@ -120,7 +141,7 @@ export const api = {
 
         return data;
     },
-    /**para lista os templates disponiveis **/  
+    /**para lista os templates disponiveis **/
     getTemplates: async () => {
         return fetchWithToken(`${API_BASE_URL}/api/templates`);
     },

@@ -44,7 +44,7 @@ export default function ChatPage() {
         if (convData.length) selectConversation(convData[0]);
         else {
           const newConvData = await api.sendMessage("Olá, TPF-AI!");
-          setConversations(prev => [newConvData.conversation, ...prev]);
+          setConversations((prev) => [newConvData.conversation, ...prev]);
           selectConversation(newConvData.conversation);
         }
       } catch (err) {
@@ -59,6 +59,7 @@ export default function ChatPage() {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
   }, [messages]);
 
+  // Função para selecionar uma conversa
   const selectConversation = async (conversation) => {
     setActiveConversation(conversation);
     setAttachedDocumentId(null);
@@ -185,13 +186,16 @@ export default function ChatPage() {
 
       {/* Chat principal */}
       <main className="chat-main">
-        <div className="chat-messages" ref={chatContainerRef}>
-          {messages.map(msg => (
-            <div key={msg._id || msg.id} className={`message-bubble ${msg.role === "user" ? "user" : "bot"}`}>
+       <div className="chat-messages" ref={chatContainerRef}>
+          {messages.map((msg) => (
+            <div
+              key={msg._id || msg.id}
+              className={`message-bubble ${
+                msg.role === "user" || msg.sender === "user" ? "user" : "bot"
+              }`}
+            >
               {msg.content}
-              {msg.document_id && (
-                  <DocumentLink documentId={msg.document_id} />
-              )}
+              {msg.document_id && <DocumentLink documentId={msg.document_id} />}
             </div>
           ))}
         </div>

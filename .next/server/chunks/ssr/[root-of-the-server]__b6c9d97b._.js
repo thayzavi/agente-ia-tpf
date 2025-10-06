@@ -251,7 +251,7 @@ __turbopack_context__.s([
     ()=>api
 ]);
 const API_BASE_URL = "https://agente-ia-squad42.onrender.com";
-// Função para pegar token do localStorage
+// Função para pegar token do localStorage. Estava com problemas para autenticar
 const getToken = ()=>{
     const token = localStorage.getItem("token");
     if (!token) throw new Error("Token não encontrado. Faça login novamente.");
@@ -283,7 +283,7 @@ const fetchWithToken = async (url, options = {})=>{
     return handleResponse(res);
 };
 const api = {
-    /** ===================== AUTENTICAÇÃO ===================== */ login: async (email, password)=>{
+    /** Login */ login: async (email, password)=>{
         if (!email || !password) throw new Error("Email e senha são obrigatórios.");
         const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: "POST",
@@ -303,10 +303,31 @@ const api = {
         }
         return data;
     },
-    getProfile: async ()=>{
+    /** Registro */ register: async (name, email, password)=>{
+        if (!name || !email || !password) {
+            throw new Error("Nome completo, email e senha são obrigatórios.");
+        }
+        const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            })
+        });
+        return handleResponse(res);
+    },
+    /** Logout */ logout: ()=>{
+        localStorage.removeItem("token");
+        window.location.href = "/auth/login";
+    },
+    /*informações do user*/ getProfile: async ()=>{
         return fetchWithToken(`${API_BASE_URL}/api/auth/profile`);
     },
-    /** ===================== CONVERSAS ===================== */ getConversations: async ()=>{
+    /** rota das conversas*/ getConversations: async ()=>{
         return fetchWithToken(`${API_BASE_URL}/api/chat/conversations`);
     },
     getConversationHistory: async (conversationId)=>{
@@ -332,7 +353,7 @@ const api = {
             method: "DELETE"
         });
     },
-    /** ===================== MENSAGENS ===================== */ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null, templateId = null)=>{
+    /** Fiz uma logica para enviar a mensagem o documento e o template */ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null, templateId = null)=>{
         if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = `${API_BASE_URL}/api/chat/conversations`;
         const requestBody = {
@@ -356,10 +377,10 @@ const api = {
         });
         return data;
     },
-    /** ===================== DOCUMENTOS ===================== */ getTemplates: async ()=>{
+    /**para lista os templates disponiveis **/ getTemplates: async ()=>{
         return fetchWithToken(`${API_BASE_URL}/api/templates`);
     },
-    /** ===================== DOCUMENTOS (completo) ===================== */ uploadDocument: async (file)=>{
+    /** rotas dos documentos */ uploadDocument: async (file)=>{
         if (!file) throw new Error("Arquivo não selecionado.");
         const formData = new FormData();
         formData.append("file", file);
@@ -374,15 +395,12 @@ const api = {
     getDocumentMetadata: async (gridfsFileId)=>{
         if (!gridfsFileId) throw new Error("ID do arquivo é obrigatório.");
         const token = getToken();
-        // CORRIGIDO: Usando backticks (crase) para injetar o valor da variável
         const res = await fetch(`${API_BASE_URL}/api/files/${gridfsFileId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
         if (!res.ok) {
-            // É uma boa prática capturar o status code para debugging, 
-            // como sugeri anteriormente:
             const status = res.status;
             let errorText = `Erro HTTP: ${status}.`;
             throw new Error(`Falha ao baixar arquivo. ${errorText}`);

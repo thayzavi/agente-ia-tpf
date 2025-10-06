@@ -662,7 +662,7 @@ h4 {
   margin-bottom: 12px;
 }
 
-A .chat-input.has-file {
+.chat-input.has-file {
   border: 2px solid #007bff;
   border-radius: 8px;
 }
@@ -670,7 +670,7 @@ A .chat-input.has-file {
 .message-bubble {
   word-break: break-word;
   border-radius: 1rem;
-  max-width: 70%;
+  max-width: 85%;
   padding: .75rem 1rem;
   font-size: .95rem;
   line-height: 1.4;
@@ -679,8 +679,8 @@ A .chat-input.has-file {
 }
 
 .message-bubble.user {
-  color: #000;
-  background: #fff;
+  color: #fff;
+  background: #000;
   border-bottom-right-radius: .25rem;
   align-self: flex-end;
 }

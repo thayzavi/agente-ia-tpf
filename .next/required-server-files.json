@@ -98,7 +98,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "/workspaces/tesst",
+    "outputFileTracingRoot": "/workspaces/agente-ia-tpf",
     "experimental": {
       "useSkewCookie": false,
       "cacheLife": {
@@ -287,10 +287,10 @@
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.mjs",
     "turbopack": {
-      "root": "/workspaces/tesst"
+      "root": "/workspaces/agente-ia-tpf"
     }
   },
-  "appDir": "/workspaces/tesst",
+  "appDir": "/workspaces/agente-ia-tpf",
   "relativeAppDir": "",
   "files": [
     ".next/routes-manifest.json",

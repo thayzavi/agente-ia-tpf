@@ -145,7 +145,6 @@ h4{
 .file-preview {
   margin-bottom: 12px;
 }
-A
 .chat-input.has-file {
   border: 2px solid #007bff;
   border-radius: 8px;
@@ -153,20 +152,20 @@ A
 
 /* bolha base */
 .message-bubble {
-  max-width: 70%;
+  max-width: 85%;
   padding: 0.75rem 1rem;
   border-radius: 1rem;
   line-height: 1.4;
   word-break: break-word;
   font-size: 0.95rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.2s ease-in-out;
 }
 
 /* mensagens do usuário */
 .message-bubble.user {
-  background: #ffffff;
-  color: rgb(0, 0, 0);
+  background: #000000;
+  color: #ffffff;
   align-self: flex-end;
   border-bottom-right-radius: 0.25rem;
 }

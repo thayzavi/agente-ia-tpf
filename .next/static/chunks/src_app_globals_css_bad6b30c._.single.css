@@ -63,7 +63,10 @@
   :root, :host {
     --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --color-red-50: #fef2f2;
     --color-red-200: #ffcaca;
+    --color-red-500: #fb2c36;
+    --color-red-700: #bf000f;
     --color-red-800: #9f0712;
     --color-yellow-200: #fff085;
     --color-yellow-800: #874b00;
@@ -99,7 +102,10 @@
 
   @supports (color: color(display-p3 0 0 0)) {
     :root, :host {
+      --color-red-50: color(display-p3 .988669 .951204 .950419);
       --color-red-200: color(display-p3 .969562 .798149 .794299);
+      --color-red-500: color(display-p3 .903738 .262579 .253307);
+      --color-red-700: color(display-p3 .692737 .116232 .104679);
       --color-red-800: color(display-p3 .569606 .121069 .108493);
       --color-yellow-200: color(display-p3 .988789 .943116 .579188);
       --color-yellow-800: color(display-p3 .503181 .30478 .075537);
@@ -120,7 +126,10 @@
 
   @supports (color: lab(0% 0 0)) {
     :root, :host {
+      --color-red-50: lab(96.5005% 4.18508 1.52328);
       --color-red-200: lab(86.017% 19.8815 7.75869);
+      --color-red-500: lab(55.4814% 75.0732 48.8528);
+      --color-red-700: lab(40.4273% 67.2623 53.7441);
       --color-red-800: lab(33.7174% 55.8993 41.0293);
       --color-yellow-200: lab(94.3433% -5.00429 52.9663);
       --color-yellow-800: lab(38.7484% 23.5833 51.4916);
@@ -521,6 +530,10 @@
     margin-right: auto;
   }
 
+  .mt-1 {
+    margin-top: calc(var(--spacing) * 1);
+  }
+
   .mt-6 {
     margin-top: calc(var(--spacing) * 6);
   }
@@ -632,6 +645,10 @@
     }
   }
 
+  .border-red-200 {
+    border-color: var(--color-red-200);
+  }
+
   .bg-blue-200 {
     background-color: var(--color-blue-200);
   }
@@ -642,6 +659,10 @@
 
   .bg-green-200 {
     background-color: var(--color-green-200);
+  }
+
+  .bg-red-50 {
+    background-color: var(--color-red-50);
   }
 
   .bg-red-200 {
@@ -679,12 +700,20 @@
     padding: calc(var(--spacing) * 6);
   }
 
+  .px-4 {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+
   .px-10 {
     padding-inline: calc(var(--spacing) * 10);
   }
 
   .py-2 {
     padding-block: calc(var(--spacing) * 2);
+  }
+
+  .py-3 {
+    padding-block: calc(var(--spacing) * 3);
   }
 
   .pr-12 {
@@ -751,6 +780,14 @@
 
   .text-green-800 {
     color: var(--color-green-800);
+  }
+
+  .text-red-500 {
+    color: var(--color-red-500);
+  }
+
+  .text-red-700 {
+    color: var(--color-red-700);
   }
 
   .text-red-800 {
