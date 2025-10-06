@@ -1,6 +1,6 @@
 const API_BASE_URL = "https://agente-ia-squad42.onrender.com";
 
-// Função para pegar token do localStorage. Esta com problemas para autenticar
+// Função para pegar token do localStorage. Estava com problemas para autenticar
 const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("Token não encontrado. Faça login novamente.");
