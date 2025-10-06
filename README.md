@@ -10,12 +10,12 @@ O TPF-AI oferece um conjunto robusto de funcionalidades para a interação com a
 
 ### Interação com o Chat
 * **Início de Novas Conversas:** Os usuários podem iniciar sessões de chat a qualquer momento.
-* **Envio de Conteúdo:** É possível enviar mensagens, além de **anexar documentos e templates** para processamento pela IA.
+* **Envio de Conteúdo:** É possível enviar mensagens, além de **anexar documentos** para processamento pela IA.
 * **Visualização em Tempo Real:** O chat exibe as mensagens do usuário e as respostas da IA em tempo real.
 
 ### Processamento de Arquivos
-* **Anexação Simplificada:** O usuário pode carregar documentos e templates diretamente na interface.
-* **Geração de Respostas:** A IA processa o conteúdo do arquivo ou template anexado e retorna uma resposta ou saída baseada nessas informações.
+* **Anexação Simplificada:** O usuário pode carregar documentos.
+* **Geração de Respostas:** A IA processa o conteúdo do arquivo retorna uma resposta baseada nessa informações.
 
 ### Histórico de Conversas
 * **Menu Lateral de Histórico:** Um menu lateral permite a visualização e o gerenciamento de todas as conversas anteriores.
