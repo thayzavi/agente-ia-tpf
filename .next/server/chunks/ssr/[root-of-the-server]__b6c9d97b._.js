@@ -353,7 +353,7 @@ const api = {
             method: "DELETE"
         });
     },
-    /** Fiz uma logica para enviar a mensagem o documento e o template */ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null, templateId = null)=>{
+    /** Fiz uma logica para enviar a mensagem o documento*/ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null)=>{
         if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = `${API_BASE_URL}/api/chat/conversations`;
         const requestBody = {
@@ -365,9 +365,6 @@ const api = {
         if (attachedDocumentId) {
             requestBody.input_document_id = attachedDocumentId;
         }
-        if (templateId) {
-            requestBody.template_id = templateId;
-        }
         const data = await fetchWithToken(url, {
             method: "POST",
             headers: {
@@ -376,9 +373,6 @@ const api = {
             body: JSON.stringify(requestBody)
         });
         return data;
-    },
-    /**para lista os templates disponiveis **/ getTemplates: async ()=>{
-        return fetchWithToken(`${API_BASE_URL}/api/templates`);
     },
     /** rotas dos documentos */ uploadDocument: async (file)=>{
         if (!file) throw new Error("Arquivo não selecionado.");
@@ -389,10 +383,11 @@ const api = {
             body: formData
         });
     },
-    getDocuments: async ()=>{
-        return fetchWithToken(`${API_BASE_URL}/api/documents`);
-    },
-    getDocumentMetadata: async (gridfsFileId)=>{
+    /**
+   * Baixa um arquivo do backend pelo GridFS File ID.
+   * @param {string} gridfsFileId - ID do arquivo no GridFS.
+   * @returns {Promise<{blob: Blob, filename: string}>} Blob e nome do arquivo original.
+   */ getDocumentFile: async (gridfsFileId)=>{
         if (!gridfsFileId) throw new Error("ID do arquivo é obrigatório.");
         const token = getToken();
         const res = await fetch(`${API_BASE_URL}/api/files/${gridfsFileId}`, {
@@ -402,10 +397,21 @@ const api = {
         });
         if (!res.ok) {
             const status = res.status;
-            let errorText = `Erro HTTP: ${status}.`;
-            throw new Error(`Falha ao baixar arquivo. ${errorText}`);
+            const errorText = await res.text();
+            throw new Error(`Falha ao baixar arquivo. Erro HTTP: ${status} - ${errorText}`);
         }
-        return res.blob();
+        // Extrai o filename do header 'Content-Disposition' retornado pelo backend
+        const disposition = res.headers.get("Content-Disposition");
+        let filename = `documento_${gridfsFileId}.docx`; // fallback
+        if (disposition && disposition.includes("filename=")) {
+            const match = disposition.match(/filename="?(.+?)"?$/);
+            if (match.length > 1) filename = match[1];
+        }
+        const blob = await res.blob();
+        return {
+            blob,
+            filename
+        };
     }
 };
 }),

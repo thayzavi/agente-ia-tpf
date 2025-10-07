@@ -3,13 +3,14 @@
     "/auth/forgot-password/verify-email/page": [
       "static/chunks/ff1a16fafef87110.js",
       "static/chunks/7dd66bdf8a7e5707.js",
-      "static/chunks/6a062092099b40d3.css",
+      "static/chunks/f59834e7b94dd847.css",
       "static/chunks/7ec46928db9b95ca.js",
       "static/chunks/cb659e33bb75db73.js",
-      "static/chunks/4c791b400ebbf74c.js",
+      "static/chunks/ce2c1f0d3e360826.js",
+      "static/chunks/522518d740397639.js",
+      "static/chunks/2008ffcf9e5b170c.js",
       "static/chunks/6c1d949039ca8e4a.js",
-      "static/chunks/47f477e3d2ef265b.js",
-      "static/chunks/turbopack-5d90717077429818.js"
+      "static/chunks/turbopack-e773198df1330949.js"
     ]
   }
 }

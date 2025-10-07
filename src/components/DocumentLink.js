@@ -1,46 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../api/Api';
-import { FaDownload } from 'react-icons/fa';
+import React from "react";
+import { api } from "../api/Api";
 
-/Area para baixar / 
 export default function DocumentLink({ documentId }) {
-    const [gridfsId, setGridfsId] = useState(null);
-    const [fileName, setFileName] = useState("Documento Gerado");
-    const [isLoading, setIsLoading] = useState(true);
+  const handleDownload = async () => {
+    try {
+      const blob = await api.getDocumentFile(documentId);
 
-    useEffect(() => {
-        const fetchFileMetadata = async () => {
-            if (!documentId) return;
+     
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
 
-            try {
-                const metadata = await api.getDocumentMetadata(documentId);
-                setGridfsId(metadata.gridfs_file_id);
-                setFileName(metadata.filename || "Documento Gerado");
-            } catch (error) {
-                console.error("Erro ao buscar metadados do arquivo:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchFileMetadata();
-    }, [documentId]);
+      a.download = `documento_${documentId}.pdf`;
 
-    if (isLoading) {
-        return <small>Carregando link do documento...</small>;
+      document.body.appendChild(a);
+      a.click();
+
+      // Limpeza
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Erro ao baixar arquivo:", err);
+      alert("Erro ao tentar baixar o arquivo. Tente novamente.");
     }
+  };
 
-    if (!gridfsId) {
-        return <small>Link de download indisponível.</small>;
-    }
-
-    return (
-        <a
-            href={`${api.API_BASE_URL}/api/files/${gridfsId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="document-download-link"
-        >
-            <FaDownload /> Baixar: {fileName}
-        </a>
-    );
+  return (
+    <button
+      onClick={handleDownload}
+      className="document-download-btn"
+      style={{
+        background: "none",
+        border: "none",
+        color: "#007bff",
+        cursor: "pointer",
+        textDecoration: "underline",
+        marginTop: "8px",
+      }}
+    >
+      📄 Baixar documento
+    </button>
+  );
 }

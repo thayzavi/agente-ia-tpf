@@ -426,7 +426,7 @@ const api = {
             method: "DELETE"
         });
     },
-    /** Fiz uma logica para enviar a mensagem o documento e o template */ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null, templateId = null)=>{
+    /** Fiz uma logica para enviar a mensagem o documento*/ sendMessage: async (prompt, conversationId = null, attachedDocumentId = null)=>{
         if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = `${API_BASE_URL}/api/chat/conversations`;
         const requestBody = {
@@ -438,9 +438,6 @@ const api = {
         if (attachedDocumentId) {
             requestBody.input_document_id = attachedDocumentId;
         }
-        if (templateId) {
-            requestBody.template_id = templateId;
-        }
         const data = await fetchWithToken(url, {
             method: "POST",
             headers: {
@@ -449,9 +446,6 @@ const api = {
             body: JSON.stringify(requestBody)
         });
         return data;
-    },
-    /**para lista os templates disponiveis **/ getTemplates: async ()=>{
-        return fetchWithToken(`${API_BASE_URL}/api/templates`);
     },
     /** rotas dos documentos */ uploadDocument: async (file)=>{
         if (!file) throw new Error("Arquivo não selecionado.");
@@ -462,10 +456,11 @@ const api = {
             body: formData
         });
     },
-    getDocuments: async ()=>{
-        return fetchWithToken(`${API_BASE_URL}/api/documents`);
-    },
-    getDocumentMetadata: async (gridfsFileId)=>{
+    /**
+   * Baixa um arquivo do backend pelo GridFS File ID.
+   * @param {string} gridfsFileId - ID do arquivo no GridFS.
+   * @returns {Promise<{blob: Blob, filename: string}>} Blob e nome do arquivo original.
+   */ getDocumentFile: async (gridfsFileId)=>{
         if (!gridfsFileId) throw new Error("ID do arquivo é obrigatório.");
         const token = getToken();
         const res = await fetch(`${API_BASE_URL}/api/files/${gridfsFileId}`, {
@@ -475,10 +470,21 @@ const api = {
         });
         if (!res.ok) {
             const status = res.status;
-            let errorText = `Erro HTTP: ${status}.`;
-            throw new Error(`Falha ao baixar arquivo. ${errorText}`);
+            const errorText = await res.text();
+            throw new Error(`Falha ao baixar arquivo. Erro HTTP: ${status} - ${errorText}`);
         }
-        return res.blob();
+        // Extrai o filename do header 'Content-Disposition' retornado pelo backend
+        const disposition = res.headers.get("Content-Disposition");
+        let filename = `documento_${gridfsFileId}.docx`; // fallback
+        if (disposition && disposition.includes("filename=")) {
+            const match = disposition.match(/filename="?(.+?)"?$/);
+            if (match.length > 1) filename = match[1];
+        }
+        const blob = await res.blob();
+        return {
+            blob,
+            filename
+        };
     }
 };
 }),
@@ -492,69 +498,42 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/api/Api.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fa$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-icons/fa/index.mjs [app-ssr] (ecmascript)");
 ;
 ;
 ;
-;
-/Area para baixar /;
 function DocumentLink({ documentId }) {
-    const [gridfsId, setGridfsId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [fileName, setFileName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("Documento Gerado");
-    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        const fetchFileMetadata = async ()=>{
-            if (!documentId) return;
-            try {
-                const metadata = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].getDocumentMetadata(documentId);
-                setGridfsId(metadata.gridfs_file_id);
-                setFileName(metadata.filename || "Documento Gerado");
-            } catch (error) {
-                console.error("Erro ao buscar metadados do arquivo:", error);
-            } finally{
-                setIsLoading(false);
-            }
-        };
-        fetchFileMetadata();
-    }, [
-        documentId
-    ]);
-    if (isLoading) {
-        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
-            children: "Carregando link do documento..."
-        }, void 0, false, {
-            fileName: "[project]/src/components/DocumentLink.js",
-            lineNumber: 29,
-            columnNumber: 16
-        }, this);
-    }
-    if (!gridfsId) {
-        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
-            children: "Link de download indisponível."
-        }, void 0, false, {
-            fileName: "[project]/src/components/DocumentLink.js",
-            lineNumber: 33,
-            columnNumber: 16
-        }, this);
-    }
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
-        href: `${__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].API_BASE_URL}/api/files/${gridfsId}`,
-        target: "_blank",
-        rel: "noopener noreferrer",
-        className: "document-download-link",
-        children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fa$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FaDownload"], {}, void 0, false, {
-                fileName: "[project]/src/components/DocumentLink.js",
-                lineNumber: 43,
-                columnNumber: 13
-            }, this),
-            " Baixar: ",
-            fileName
-        ]
-    }, void 0, true, {
+    const handleDownload = async ()=>{
+        try {
+            const { blob, filename } = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].getDocumentFile(documentId);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Erro ao baixar arquivo:", err);
+            alert("Erro ao tentar baixar o arquivo. Tente novamente.");
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+        onClick: handleDownload,
+        className: "document-download-btn",
+        style: {
+            background: "none",
+            border: "none",
+            color: "#007bff",
+            cursor: "pointer",
+            textDecoration: "underline",
+            marginTop: "8px"
+        },
+        children: "📄 Baixar documento"
+    }, void 0, false, {
         fileName: "[project]/src/components/DocumentLink.js",
-        lineNumber: 37,
-        columnNumber: 9
+        lineNumber: 26,
+        columnNumber: 5
     }, this);
 }
 }),
@@ -577,29 +556,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b
 function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
     const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [templates, setTemplates] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [uploadedFile, setUploadedFile] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [selectedTemplate, setSelectedTemplate] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [currentStep, setCurrentStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(1);
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (currentStep === 2) {
-            loadTemplates();
-        }
-    }, [
-        currentStep
-    ]);
-    const loadTemplates = async ()=>{
-        try {
-            setIsLoading(true);
-            const templatesData = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].getTemplates();
-            setTemplates(templatesData || []);
-        } catch (err) {
-            console.error("Erro ao carregar templates:", err);
-            setError("Erro ao carregar templates. Tente novamente.");
-        } finally{
-            setIsLoading(false);
-        }
-    };
     const handleFileUpload = async (file)=>{
         if (!file || !activeConversation) {
             setError("Selecione um arquivo e verifique a conversa ativa.");
@@ -618,8 +575,11 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
                 name: file.name,
                 file: file
             });
-            // Avançar para seleção de template
-            setCurrentStep(2);
+            // Chama a função de callback com o ID e nome do arquivo
+            if (onFileUploaded) {
+                onFileUploaded(documentId, file.name);
+            }
+            onClose();
         } catch (err) {
             console.error("Erro no upload do arquivo:", err);
             setError(err.message || "Erro ao enviar arquivo.");
@@ -633,33 +593,6 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
             handleFileUpload(file);
         }
     };
-    const handleTemplateSelect = async (template)=>{
-        if (!uploadedFile) return;
-        try {
-            // Aqui você envia tanto o documento quanto o template 
-            const processingData = {
-                documentId: uploadedFile.id,
-                templateId: template._id,
-                fileName: uploadedFile.name,
-                templateName: template.name
-            };
-            console.log("Processando:", processingData);
-            // Chama a função de callback com ambos os IDs
-            if (onFileUploaded) {
-                onFileUploaded(uploadedFile.id, uploadedFile.name, template._id);
-            }
-            onClose();
-        } catch (err) {
-            console.error("Erro ao processar:", err);
-            setError("Erro ao selecionar template.");
-        }
-    };
-    const goBackToUpload = ()=>{
-        setCurrentStep(1);
-        setUploadedFile(null);
-        setSelectedTemplate(null);
-        setError(null);
-    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "modal-overlay",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -669,10 +602,10 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
                     className: "modal-header",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                            children: currentStep === 1 ? "Enviar Arquivo" : "Selecionar Template"
+                            children: "Enviar Arquivo"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 112,
+                            lineNumber: 59,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -680,75 +613,18 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
                             onClick: onClose,
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$md$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MdOutlineClose"], {}, void 0, false, {
                                 fileName: "[project]/src/components/AddFileModal.js",
-                                lineNumber: 116,
+                                lineNumber: 61,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 115,
+                            lineNumber: 60,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddFileModal.js",
-                    lineNumber: 111,
-                    columnNumber: 9
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "modal-steps",
-                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "step-indicator",
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: `step ${currentStep >= 1 ? 'active' : ''}`,
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        children: "1"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/components/AddFileModal.js",
-                                        lineNumber: 123,
-                                        columnNumber: 15
-                                    }, this),
-                                    "Upload"
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/components/AddFileModal.js",
-                                lineNumber: 122,
-                                columnNumber: 13
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "step-connector"
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/AddFileModal.js",
-                                lineNumber: 126,
-                                columnNumber: 13
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: `step ${currentStep >= 2 ? 'active' : ''}`,
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        children: "2"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/components/AddFileModal.js",
-                                        lineNumber: 128,
-                                        columnNumber: 15
-                                    }, this),
-                                    "Template"
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/components/AddFileModal.js",
-                                lineNumber: 127,
-                                columnNumber: 13
-                            }, this)
-                        ]
-                    }, void 0, true, {
-                        fileName: "[project]/src/components/AddFileModal.js",
-                        lineNumber: 121,
-                        columnNumber: 11
-                    }, this)
-                }, void 0, false, {
-                    fileName: "[project]/src/components/AddFileModal.js",
-                    lineNumber: 120,
+                    lineNumber: 58,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -759,18 +635,18 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 135,
+                            lineNumber: 66,
                             columnNumber: 21
                         }, this),
-                        currentStep === 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        !uploadedFile ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "upload-section",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                     className: "modal-description",
-                                    children: "Faça upload do arquivo que você deseja processar (DOC, DOCX, XLSX, etc.)"
+                                    children: "Faça upload do arquivo que você deseja enviar (DOC, DOCX, XLSX, etc.)"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 140,
+                                    lineNumber: 70,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -780,14 +656,14 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
                                             className: "upload-icon"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 145,
+                                            lineNumber: 75,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: isLoading ? "Enviando..." : "Escolher Arquivo"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 146,
+                                            lineNumber: 76,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -800,211 +676,99 @@ function AddFileModal({ onFileUploaded, onClose, activeConversation }) {
                                             accept: ".doc,.docx,.xlsx,.xls,.pdf,.txt"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 147,
+                                            lineNumber: 77,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 144,
+                                    lineNumber: 74,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "supported-formats",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
-                                        children: "Formatos suportados: DOC, DOCX, XLSX, XLS, PDF, TXT"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/components/AddFileModal.js",
-                                        lineNumber: 157,
-                                        columnNumber: 17
-                                    }, this)
-                                }, void 0, false, {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
+                                            children: "Formatos suportados: DOC, DOCX, XLSX, XLS, PDF, TXT"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/AddFileModal.js",
+                                            lineNumber: 87,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            children: "Prompt para melhor resposta : Use o “TEMPLATE_TPF.docx” e preencha cada campo com informações completas e detalhadas."
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/AddFileModal.js",
+                                            lineNumber: 88,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 156,
+                                    lineNumber: 86,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 139,
+                            lineNumber: 69,
                             columnNumber: 13
-                        }, this),
-                        currentStep === 2 && uploadedFile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "templates-section",
+                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "uploaded-file-info",
                             children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$md$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MdDescription"], {
+                                    className: "file-icon"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/AddFileModal.js",
+                                    lineNumber: 93,
+                                    columnNumber: 15
+                                }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "uploaded-file-info",
+                                    className: "file-details",
                                     children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$md$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MdDescription"], {
-                                            className: "file-icon"
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            className: "file-name",
+                                            children: uploadedFile.name
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 166,
+                                            lineNumber: 95,
                                             columnNumber: 17
                                         }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "file-details",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "file-name",
-                                                    children: uploadedFile.name
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddFileModal.js",
-                                                    lineNumber: 168,
-                                                    columnNumber: 19
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "file-status",
-                                                    children: "✓ Arquivo enviado com sucesso"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddFileModal.js",
-                                                    lineNumber: 169,
-                                                    columnNumber: 19
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 167,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                            className: "change-file-btn",
-                                            onClick: goBackToUpload,
-                                            children: "Alterar"
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            className: "file-status",
+                                            children: "✓ Arquivo enviado com sucesso"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 171,
+                                            lineNumber: 96,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 165,
+                                    lineNumber: 94,
                                     columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "modal-description",
-                                    children: "Selecione um template para processar o arquivo:"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 176,
-                                    columnNumber: 15
-                                }, this),
-                                isLoading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "loading-templates",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        children: "Carregando templates..."
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/components/AddFileModal.js",
-                                        lineNumber: 182,
-                                        columnNumber: 19
-                                    }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 181,
-                                    columnNumber: 17
-                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "templates-list",
-                                    children: [
-                                        templates.map((template)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: `template_name ${selectedTemplate?._id === template._id ? "selected" : ""}`,
-                                                onClick: ()=>handleTemplateSelect(template),
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$md$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MdDescription"], {
-                                                        className: "template-icon"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/components/AddFileModal.js",
-                                                        lineNumber: 192,
-                                                        columnNumber: 23
-                                                    }, this),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "template-info",
-                                                        children: [
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                className: "template-name",
-                                                                children: template.name
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/components/AddFileModal.js",
-                                                                lineNumber: 194,
-                                                                columnNumber: 25
-                                                            }, this),
-                                                            template.description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                className: "template-description",
-                                                                children: template.description
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/components/AddFileModal.js",
-                                                                lineNumber: 198,
-                                                                columnNumber: 27
-                                                            }, this)
-                                                        ]
-                                                    }, void 0, true, {
-                                                        fileName: "[project]/src/components/AddFileModal.js",
-                                                        lineNumber: 193,
-                                                        columnNumber: 23
-                                                    }, this)
-                                                ]
-                                            }, template._id, true, {
-                                                fileName: "[project]/src/components/AddFileModal.js",
-                                                lineNumber: 187,
-                                                columnNumber: 21
-                                            }, this)),
-                                        templates.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "no-templates",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$md$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MdDescription"], {
-                                                    className: "no-templates-icon"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddFileModal.js",
-                                                    lineNumber: 208,
-                                                    columnNumber: 23
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    children: "Nenhum template disponível"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddFileModal.js",
-                                                    lineNumber: 209,
-                                                    columnNumber: 23
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("small", {
-                                                    children: "Entre em contato com o administrador para adicionar templates."
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/AddFileModal.js",
-                                                    lineNumber: 210,
-                                                    columnNumber: 23
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/AddFileModal.js",
-                                            lineNumber: 207,
-                                            columnNumber: 21
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/AddFileModal.js",
-                                    lineNumber: 185,
-                                    columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/AddFileModal.js",
-                            lineNumber: 164,
+                            lineNumber: 92,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AddFileModal.js",
-                    lineNumber: 134,
+                    lineNumber: 65,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/AddFileModal.js",
-            lineNumber: 110,
+            lineNumber: 57,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/AddFileModal.js",
-        lineNumber: 109,
+        lineNumber: 56,
         columnNumber: 5
     }, this);
 }
@@ -1139,7 +903,7 @@ function FileAttachment({ documentId, fileName, onRemove, showRemove = true }) {
 "[project]/src/components/InputChat.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-// Aqui onde funciona boa parte da logica, enivar a mensagem, o arqui e o template
+// Aqui onde funciona boa parte da lógica: enviar a mensagem e o arquivo
 __turbopack_context__.s([
     "default",
     ()=>InputChat
@@ -1155,7 +919,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$File$2e
 ;
 ;
 ;
-function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, attachedDocumentId, setAttachedDocumentId, attachedFileName, setAttachedFileName, attachedTemplateId, setAttachedTemplateId }) {
+function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, attachedDocumentId, setAttachedDocumentId, attachedFileName, setAttachedFileName }) {
     const [message, setMessage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     const [isSending, setIsSending] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const sendMessage = async ()=>{
@@ -1163,22 +927,21 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
         if (!activeConversation || !userPrompt && !attachedDocumentId || isSending) return;
         setIsSending(true);
         try {
-            // Enviar mensagem do usuário com template se houver
+            // Enviar mensagem do usuário
             onMessageSent?.({
                 sender: "user",
-                content: userPrompt || "Processar arquivo com template",
+                content: userPrompt || "Processar arquivo",
                 id: crypto.randomUUID(),
-                attachedDocumentId: attachedDocumentId,
-                attachedFileName: attachedFileName,
-                templateId: attachedTemplateId
+                attachedDocumentId,
+                attachedFileName
             });
             const conversationId = activeConversation?._id || activeConversation?.id;
-            // Enviar para API com templateId
-            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].sendMessage(userPrompt || "Processar este arquivo com o template selecionado", conversationId, attachedDocumentId, attachedTemplateId);
+            // Enviar para API
+            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].sendMessage(userPrompt || "Processar este arquivo", conversationId, attachedDocumentId);
             // Limpar anexos após envio
             setAttachedDocumentId(null);
             setAttachedFileName(null);
-            setAttachedTemplateId(null);
+            // Mensagem de resposta do bot
             onMessageSent?.({
                 sender: "bot",
                 content: data?.message_content || data?.content || "Tudo pronto! Clique na conversa no histórico à esquerda para ver a resposta completa.",
@@ -1187,10 +950,9 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
             });
         } catch (err) {
             console.error("Erro ao enviar mensagem:", err);
-            const errorMessage = "Erro de conexão ou servidor. Tente novamente.";
             onMessageSent?.({
                 sender: "bot",
-                content: errorMessage,
+                content: "Erro de conexão ou servidor. Tente novamente.",
                 id: crypto.randomUUID()
             });
         } finally{
@@ -1201,10 +963,6 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
     const handleRemoveAttachment = ()=>{
         setAttachedDocumentId(null);
         setAttachedFileName(null);
-        setAttachedTemplateId(null);
-    };
-    const handleRemoveTemplateOnly = ()=>{
-        setAttachedTemplateId(null);
     };
     const handleKeyDown = (e)=>{
         if (e.key === "Enter" && !e.shiftKey) {
@@ -1213,7 +971,6 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
         }
     };
     const getPlaceholderText = ()=>{
-        if (attachedDocumentId && attachedTemplateId) return "Digite instruções para processar o arquivo com o template...";
         if (attachedDocumentId) return "Digite suas instruções para o documento...";
         if (isSending) return "Aguardando resposta...";
         return "Digite sua mensagem...";
@@ -1221,86 +978,40 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "chat-input-container",
         children: [
-            (attachedDocumentId || attachedTemplateId) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            attachedDocumentId && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "attachment-preview",
-                children: [
-                    attachedDocumentId && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$File$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                        documentId: attachedDocumentId,
-                        fileName: attachedFileName,
-                        onRemove: handleRemoveAttachment
-                    }, void 0, false, {
-                        fileName: "[project]/src/components/InputChat.js",
-                        lineNumber: 98,
-                        columnNumber: 13
-                    }, this),
-                    attachedTemplateId && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "template-attachment",
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "file-info",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "file-icon",
-                                        children: "📄"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/components/InputChat.js",
-                                        lineNumber: 107,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "file-name",
-                                        children: "Template selecionado"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/components/InputChat.js",
-                                        lineNumber: 108,
-                                        columnNumber: 17
-                                    }, this)
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/components/InputChat.js",
-                                lineNumber: 106,
-                                columnNumber: 15
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                className: "remove-file-btn",
-                                onClick: attachedDocumentId ? handleRemoveTemplateOnly : handleRemoveAttachment,
-                                title: "Remover template",
-                                children: "×"
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/InputChat.js",
-                                lineNumber: 110,
-                                columnNumber: 15
-                            }, this)
-                        ]
-                    }, void 0, true, {
-                        fileName: "[project]/src/components/InputChat.js",
-                        lineNumber: 105,
-                        columnNumber: 13
-                    }, this)
-                ]
-            }, void 0, true, {
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$File$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                    documentId: attachedDocumentId,
+                    fileName: attachedFileName,
+                    onRemove: handleRemoveAttachment
+                }, void 0, false, {
+                    fileName: "[project]/src/components/InputChat.js",
+                    lineNumber: 95,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
                 fileName: "[project]/src/components/InputChat.js",
-                lineNumber: 96,
+                lineNumber: 94,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: `chat-input ${attachedDocumentId || attachedTemplateId ? 'has-attachment' : ''}`,
+                className: `chat-input ${attachedDocumentId ? "has-attachment" : ""}`,
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                         className: "add-file-btn",
                         onClick: onOpenAddFileModal,
                         disabled: isSending,
-                        title: "Anexar arquivo e template",
+                        title: "Anexar arquivo",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fi$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FiPlus"], {
-                            className: attachedDocumentId ? 'attached-icon' : ''
+                            className: attachedDocumentId ? "attached-icon" : ""
                         }, void 0, false, {
                             fileName: "[project]/src/components/InputChat.js",
-                            lineNumber: 130,
+                            lineNumber: 111,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/InputChat.js",
-                        lineNumber: 124,
+                        lineNumber: 105,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1312,7 +1023,7 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
                         disabled: isSending
                     }, void 0, false, {
                         fileName: "[project]/src/components/InputChat.js",
-                        lineNumber: 133,
+                        lineNumber: 114,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1322,24 +1033,24 @@ function InputChat({ activeConversation, onOpenAddFileModal, onMessageSent, atta
                         title: "Enviar mensagem",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$fi$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FiSend"], {}, void 0, false, {
                             fileName: "[project]/src/components/InputChat.js",
-                            lineNumber: 148,
+                            lineNumber: 129,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/InputChat.js",
-                        lineNumber: 142,
+                        lineNumber: 123,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/InputChat.js",
-                lineNumber: 123,
+                lineNumber: 104,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/InputChat.js",
-        lineNumber: 93,
+        lineNumber: 91,
         columnNumber: 5
     }, this);
 }
@@ -1387,7 +1098,6 @@ function ChatPage() {
     // Estados para gerenciar os anexos
     const [attachedDocumentId, setAttachedDocumentId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [attachedFileName, setAttachedFileName] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [attachedTemplateId, setAttachedTemplateId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null); // ← ESTADO ADICIONADO
     const chatContainerRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     // Carrega conversas e usuário ao abrir
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -1429,7 +1139,6 @@ function ChatPage() {
         setActiveConversation(conversation);
         setAttachedDocumentId(null);
         setAttachedFileName(null);
-        setAttachedTemplateId(null);
         try {
             const history = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].getConversationHistory(conversation._id || conversation.id);
             setMessages(history || []);
@@ -1471,12 +1180,11 @@ function ChatPage() {
             ]);
     const closeModal = ()=>setModal(null);
     const onLogout = ()=>window.location.href = "/auth/login";
-    const handleFileUploaded = (documentId, fileName, templateId)=>{
+    const handleFileUploaded = (documentId, fileName)=>{
         setAttachedDocumentId(documentId);
         setAttachedFileName(fileName);
-        setAttachedTemplateId(templateId);
         setShowAddFileModal(false);
-        alert(`Arquivo "${fileName}" e template selecionado! Digite suas instruções.`);
+        alert(`Arquivo "${fileName}" anexado! Digite suas instruções.`);
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "chat-container",
@@ -1493,12 +1201,12 @@ function ChatPage() {
                             }, void 0, false, {
                                 fileName: "[project]/src/app/chat/page.js",
                                 lineNumber: 125,
-                                columnNumber: 33
+                                columnNumber: 14
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/chat/page.js",
-                        lineNumber: 125,
+                        lineNumber: 124,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1509,7 +1217,6 @@ function ChatPage() {
                                 setMessages([]);
                                 setAttachedDocumentId(null);
                                 setAttachedFileName(null);
-                                setAttachedTemplateId(null);
                                 const apiResponse = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$api$2f$Api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].sendMessage("Novo chat iniciado");
                                 if (!apiResponse || !apiResponse.conversation_id) {
                                     throw new Error("API não retornou o ID da nova conversa.");
@@ -1528,7 +1235,7 @@ function ChatPage() {
                         children: "+ Novo Chat"
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.js",
-                        lineNumber: 127,
+                        lineNumber: 128,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
@@ -1573,8 +1280,8 @@ function ChatPage() {
                                     color: "#000000ff"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/chat/page.js",
-                                    lineNumber: 181,
-                                    columnNumber: 48
+                                    lineNumber: 182,
+                                    columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/chat/page.js",
@@ -1585,7 +1292,7 @@ function ChatPage() {
                                 children: user.name
                             }, void 0, false, {
                                 fileName: "[project]/src/app/chat/page.js",
-                                lineNumber: 182,
+                                lineNumber: 184,
                                 columnNumber: 11
                             }, this),
                             showMenuPerfil && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$MenuPerfil$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1593,7 +1300,7 @@ function ChatPage() {
                                 userEmail: user.email
                             }, void 0, false, {
                                 fileName: "[project]/src/app/chat/page.js",
-                                lineNumber: 183,
+                                lineNumber: 185,
                                 columnNumber: 30
                             }, this)
                         ]
@@ -1605,7 +1312,7 @@ function ChatPage() {
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/chat/page.js",
-                lineNumber: 124,
+                lineNumber: 123,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -1622,19 +1329,19 @@ function ChatPage() {
                                         documentId: msg.document_id
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/chat/page.js",
-                                        lineNumber: 198,
-                                        columnNumber: 35
+                                        lineNumber: 200,
+                                        columnNumber: 34
                                     }, this)
                                 ]
                             }, msg._id || msg.id, true, {
                                 fileName: "[project]/src/app/chat/page.js",
-                                lineNumber: 191,
+                                lineNumber: 193,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.js",
-                        lineNumber: 189,
-                        columnNumber: 8
+                        lineNumber: 191,
+                        columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$InputChat$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                         activeConversation: activeConversation,
@@ -1643,18 +1350,16 @@ function ChatPage() {
                         attachedDocumentId: attachedDocumentId,
                         setAttachedDocumentId: setAttachedDocumentId,
                         attachedFileName: attachedFileName,
-                        setAttachedFileName: setAttachedFileName,
-                        attachedTemplateId: attachedTemplateId,
-                        setAttachedTemplateId: setAttachedTemplateId
+                        setAttachedFileName: setAttachedFileName
                     }, void 0, false, {
                         fileName: "[project]/src/app/chat/page.js",
-                        lineNumber: 203,
+                        lineNumber: 205,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/chat/page.js",
-                lineNumber: 188,
+                lineNumber: 190,
                 columnNumber: 7
             }, this),
             modal && modal.chat && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Modal$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1679,7 +1384,7 @@ function ChatPage() {
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/chat/page.js",
-        lineNumber: 122,
+        lineNumber: 121,
         columnNumber: 5
     }, this);
 }

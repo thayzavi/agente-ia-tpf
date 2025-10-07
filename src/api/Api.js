@@ -109,13 +109,12 @@ export const api = {
         });
     },
 
-    /** Fiz uma logica para enviar a mensagem o documento e o template */
+    /** Fiz uma logica para enviar a mensagem o documento*/
 
     sendMessage: async (
         prompt,
         conversationId = null,
-        attachedDocumentId = null,
-        templateId = null
+        attachedDocumentId = null
     ) => {
         if (!prompt) throw new Error("Mensagem não pode ser vazia.");
         const url = `${API_BASE_URL}/api/chat/conversations`;
@@ -129,10 +128,6 @@ export const api = {
         if (attachedDocumentId) {
             requestBody.input_document_id = attachedDocumentId;
         }
-        if (templateId) {
-            requestBody.template_id = templateId;
-        }
-
         const data = await fetchWithToken(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -140,10 +135,6 @@ export const api = {
         });
 
         return data;
-    },
-    /**para lista os templates disponiveis **/
-    getTemplates: async () => {
-        return fetchWithToken(`${API_BASE_URL}/api/templates`);
     },
 
     /** rotas dos documentos */
@@ -157,23 +148,20 @@ export const api = {
         });
     },
 
-    getDocuments: async () => {
-        return fetchWithToken(`${API_BASE_URL}/api/documents`);
-    },
+getDocumentFile: async (gridfsFileId) => {
+  if (!gridfsFileId) throw new Error("ID do arquivo é obrigatório.");
+  const token = getToken();
 
-    getDocumentMetadata: async (gridfsFileId) => {
-        if (!gridfsFileId) throw new Error("ID do arquivo é obrigatório.");
-        const token = getToken();
+  const res = await fetch(`${API_BASE_URL}/api/files/${gridfsFileId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
-        const res = await fetch(`${API_BASE_URL}/api/files/${gridfsFileId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) {
-            const status = res.status;
-            let errorText = `Erro HTTP: ${status}.`;
-            throw new Error(`Falha ao baixar arquivo. ${errorText}`);
-        }
+  if (!res.ok) {
+    const status = res.status;
+    throw new Error(`Falha ao baixar arquivo. Erro HTTP: ${status}`);
+  }
 
-        return res.blob();
-    },
+  return res.blob();
+},
+
 };
